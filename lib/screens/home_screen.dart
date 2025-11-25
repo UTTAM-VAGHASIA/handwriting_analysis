@@ -4,7 +4,9 @@ import '../models/analysis_data.dart';
 import 'result_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final VoidCallback? onThemeChanged;
+
+  const HomeScreen({super.key, this.onThemeChanged});
 
   @override
   HomeScreenState createState() => HomeScreenState();
@@ -18,7 +20,7 @@ class HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this); // Three tabs
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -45,119 +47,160 @@ class HomeScreenState extends State<HomeScreen>
     });
   }
 
-  void selectAll(String category, List<String> items) {
-    setState(() {
-      for (var item in items) {
-        selectedOptions["$category > $item"] = true;
-      }
-    });
+  Widget buildCategoryContent(String categoryName, dynamic categoryData) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                onPressed: () => resetTabSelections(categoryName),
+                icon: Icon(Icons.clear_all),
+                label: Text('Clear Tab'),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: categoryData is Map<String, List<String>>
+              ? _buildGroupedList(categoryName, categoryData)
+              : _buildFlatList(categoryName, categoryData as List<String>),
+        ),
+      ],
+    );
   }
 
-  Widget buildCategoryContent(String categoryName, dynamic categoryData) {
-    if (categoryData is Map<String, List<String>>) {
-      return Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ElevatedButton(
-                onPressed: () => resetTabSelections(categoryName),
-                child: Text('Clear'),
-              ),
-            ],
-          ),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.all(8),
-              children: categoryData.entries.map<Widget>((entry) {
-                final subCategoryName = entry.key;
-                final subCategoryData = entry.value;
+  Widget _buildGroupedList(
+      String categoryName, Map<String, List<String>> data) {
+    return ListView.builder(
+      padding: EdgeInsets.all(16),
+      itemCount: data.length,
+      itemBuilder: (context, index) {
+        final entry = data.entries.elementAt(index);
+        final subCategoryName = entry.key;
+        final subCategoryData = entry.value;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      subCategoryName,
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              child: Text(
+                subCategoryName,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    GridView.count(
-                      crossAxisCount: 4,
-                      shrinkWrap: true,
-                      childAspectRatio: 3,
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      children: subCategoryData.map((item) {
-                        final itemKey =
-                            "$categoryName > $subCategoryName > $item";
+              ),
+            ),
+            _buildGridItems(categoryName, subCategoryName, subCategoryData),
+            SizedBox(height: 24),
+          ],
+        );
+      },
+    );
+  }
 
-                        return GestureDetector(
-                          onTap: () => toggleSelection(
-                              itemKey, !(selectedOptions[itemKey] ?? false)),
-                          child: Card(
-                            child: Center(
-                              child: CheckboxListTile(
-                                title:
-                                    Text(item, style: TextStyle(fontSize: 18)),
-                                value: selectedOptions[itemKey] ?? false,
-                                onChanged: (value) =>
-                                    toggleSelection(itemKey, value),
+  Widget _buildFlatList(String categoryName, List<String> data) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16),
+      child: _buildGridItems(categoryName, null, data),
+    );
+  }
+
+  Widget _buildGridItems(
+      String categoryName, String? subCategoryName, List<String> items) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double itemWidth = 200;
+        final int crossAxisCount = (constraints.maxWidth / itemWidth).floor();
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount > 0 ? crossAxisCount : 1,
+            childAspectRatio: 2.5,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            final itemKey = subCategoryName != null
+                ? "$categoryName > $subCategoryName > $item"
+                : "$categoryName > $item";
+            final isSelected = selectedOptions[itemKey] ?? false;
+
+            return InkWell(
+              onTap: () => toggleSelection(itemKey, !isSelected),
+              borderRadius: BorderRadius.circular(12),
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).dividerColor.withValues(alpha: 0.2),
+                    width: isSelected ? 2 : 1,
+                  ),
+                  boxShadow: [
+                    if (!isSelected)
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                  ],
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: isSelected,
+                      onChanged: (value) => toggleSelection(itemKey, value),
+                      activeColor: Theme.of(context).colorScheme.primary,
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: SizedBox(
+                              width: constraints.maxWidth,
+                              child: Text(
+                                item,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                maxLines: 3,
                               ),
                             ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      );
-    } else if (categoryData is List<String>) {
-      return Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ElevatedButton(
-                onPressed: () => resetTabSelections(categoryName),
-                child: Text('Clear'),
-              ),
-            ],
-          ),
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 4,
-              shrinkWrap: true,
-              childAspectRatio: 3,
-              physics: NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(vertical: 8),
-              children: categoryData.map((item) {
-                final itemKey = "$categoryName > $item";
-
-                return GestureDetector(
-                  onTap: () => toggleSelection(
-                      itemKey, !(selectedOptions[itemKey] ?? false)),
-                  child: Card(
-                    child: Center(
-                      child: CheckboxListTile(
-                        title: Text(item, style: TextStyle(fontSize: 18)),
-                        value: selectedOptions[itemKey] ?? false,
-                        onChanged: (value) => toggleSelection(itemKey, value),
+                          );
+                        },
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      );
-    } else {
-      return Center(child: Text('Unsupported data format.'));
-    }
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -166,18 +209,28 @@ class HomeScreenState extends State<HomeScreen>
       appBar: AppBar(
         title: Text('Handwriting Analysis'),
         actions: [
+          if (widget.onThemeChanged != null)
+            IconButton(
+              onPressed: widget.onThemeChanged,
+              icon: Icon(Icons.brightness_6),
+              tooltip: 'Toggle Theme',
+            ),
           IconButton(
             onPressed: resetAllSelections,
-            icon: Icon(Icons.clear_all),
-            tooltip: 'Clear All',
+            icon: Icon(Icons.refresh),
+            tooltip: 'Reset All',
           ),
         ],
         bottom: TabBar(
           controller: _tabController,
+          indicatorColor: Theme.of(context).colorScheme.secondary,
+          labelColor: Theme.of(context).colorScheme.onPrimaryContainer,
+          unselectedLabelColor:
+              Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
           tabs: [
-            Tab(text: 'Macro Analysis'),
-            Tab(text: 'Micro Analysis'),
-            Tab(text: 'Areas to Improve'),
+            Tab(text: 'Macro Analysis', icon: Icon(Icons.analytics)),
+            Tab(text: 'Micro Analysis', icon: Icon(Icons.search)),
+            Tab(text: 'Improvements', icon: Icon(Icons.trending_up)),
           ],
         ),
       ),
@@ -192,22 +245,26 @@ class HomeScreenState extends State<HomeScreen>
               areasToImprove['Micro + Macro Analysis']['Areas to Improve']),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: selectedOptions.isNotEmpty
-            ? () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ResultScreen(
-                      selectedOptions: selectedOptions,
-                      onNewAnalysis: resetAllSelections,
-                    ),
-                  ),
-                );
-              }
-            : null,
-        tooltip: 'Submit Analysis',
-        child: Icon(Icons.check),
+      floatingActionButton: AnimatedScale(
+        scale: selectedOptions.isNotEmpty ? 1.0 : 0.0,
+        duration: Duration(milliseconds: 300),
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ResultScreen(
+                  selectedOptions: selectedOptions,
+                  onNewAnalysis: resetAllSelections,
+                  onThemeChanged: widget.onThemeChanged,
+                ),
+              ),
+            );
+          },
+          tooltip: 'Submit Analysis',
+          icon: Icon(Icons.check),
+          label: Text('Analyze'),
+        ),
       ),
     );
   }

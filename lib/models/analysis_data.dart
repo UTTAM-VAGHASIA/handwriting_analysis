@@ -290,7 +290,7 @@ const Map<String, dynamic> values = {
   ],
   'shallow thinking': [
     'You don\'t dig very deep into anything on first thought.',
-    'You might think it to be a negative trait. But, it would be very surprising for you to know that most of the top executives have shallow thinking as they do not have time to dig deeper into anything. As the investigation and analysis are done by others, you are only required to say, \"Yes / No\" for it.'
+    'You might think it to be a negative trait. But, it would be very surprising for you to know that most of the top executives have shallow thinking as they do not have time to dig deeper into anything. As the investigation and analysis are done by others, you are only required to say, "Yes / No" for it.'
   ],
   'surface thinking': [
     'You tend to stay close to the line of reality.',
