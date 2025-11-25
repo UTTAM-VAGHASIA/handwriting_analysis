@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'screens/home_screen.dart';
+import 'screens/landing_screen.dart';
 
 void main() {
   runApp(HandwritingAnalysisApp());
@@ -24,13 +24,7 @@ class HandwritingAnalysisApp extends StatelessWidget {
           theme: _buildTheme(Brightness.light),
           darkTheme: _buildTheme(Brightness.dark),
           themeMode: currentMode,
-          home: HomeScreen(
-            onThemeChanged: () {
-              themeNotifier.value = currentMode == ThemeMode.light
-                  ? ThemeMode.dark
-                  : ThemeMode.light;
-            },
-          ),
+          home: LandingScreen(),
         );
       },
     );
@@ -63,7 +57,8 @@ class HandwritingAnalysisApp extends StatelessWidget {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );

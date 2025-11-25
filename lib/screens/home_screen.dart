@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/analysis_data.dart';
+import '../widgets/app_drawer.dart';
+import '../widgets/hover_3d_card.dart';
 import 'result_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -134,32 +136,12 @@ class HomeScreenState extends State<HomeScreen>
                 : "$categoryName > $item";
             final isSelected = selectedOptions[itemKey] ?? false;
 
-            return InkWell(
+            return Hover3DCard(
               onTap: () => toggleSelection(itemKey, !isSelected),
-              borderRadius: BorderRadius.circular(12),
-              child: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primaryContainer
-                      : Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).dividerColor.withValues(alpha: 0.2),
-                    width: isSelected ? 2 : 1,
-                  ),
-                  boxShadow: [
-                    if (!isSelected)
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                  ],
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              isSelected: isSelected,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Row(
                   children: [
                     Checkbox(
@@ -206,6 +188,7 @@ class HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: AppDrawer(),
       appBar: AppBar(
         title: Text('Handwriting Analysis'),
         actions: [
@@ -225,8 +208,10 @@ class HomeScreenState extends State<HomeScreen>
           controller: _tabController,
           indicatorColor: Theme.of(context).colorScheme.secondary,
           labelColor: Theme.of(context).colorScheme.onPrimaryContainer,
-          unselectedLabelColor:
-              Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+          unselectedLabelColor: Theme.of(context)
+              .colorScheme
+              .onPrimaryContainer
+              .withValues(alpha: 0.7),
           tabs: [
             Tab(text: 'Macro Analysis', icon: Icon(Icons.analytics)),
             Tab(text: 'Micro Analysis', icon: Icon(Icons.search)),

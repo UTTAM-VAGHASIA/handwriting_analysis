@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/analysis_data.dart';
+import '../widgets/hover_3d_card.dart';
 
 class ResultScreen extends StatelessWidget {
   final Map<String, bool> selectedOptions;
@@ -99,7 +100,6 @@ class ResultScreen extends StatelessWidget {
     return buffer.toString();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final detailedPoints = getDetailedAnalysisPoints();
@@ -139,89 +139,104 @@ class ResultScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: ListView(
-                    padding: EdgeInsets.all(16),
+                    padding: EdgeInsets.only(right: 16, left: 16, bottom: 16),
                     children: detailedPoints.entries.map((categoryEntry) {
                       final category = categoryEntry.key;
                       final subCategories = categoryEntry.value;
 
-                      return Card(
-                        margin: EdgeInsets.only(bottom: 16),
-                        child: ExpansionTile(
-                          initiallyExpanded: true,
-                          expandedAlignment: Alignment.centerLeft,
-                          title: Text(
-                            capitalize(category),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                          ),
-                          children: subCategories.entries.map((subEntry) {
-                            final subCategory = subEntry.key;
-                            final traits = subEntry.value;
-
-                            return Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (subCategory.isNotEmpty)
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 8.0),
-                                      child: Text(
-                                        capitalize(subCategory),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                      ),
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Hover3DCard(
+                          animate: false,
+                          onTap: () {}, // No action on tap for now, just visual
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                            ),
+                            child: ExpansionTile(
+                              initiallyExpanded: true,
+                              expandedAlignment: Alignment.centerLeft,
+                              title: Text(
+                                capitalize(category),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                     ),
-                                  ...traits.entries.map((traitEntry) {
-                                    final trait = traitEntry.key;
-                                    final points = traitEntry.value;
-
-                                    return Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 12.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "• ${capitalize(trait)}",
+                              ),
+                              children: subCategories.entries.map((subEntry) {
+                                final subCategory = subEntry.key;
+                                final traits = subEntry.value;
+                        
+                                return Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (subCategory.isNotEmpty)
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 8.0),
+                                          child: Text(
+                                            capitalize(subCategory),
                                             style: Theme.of(context)
                                                 .textTheme
-                                                .bodyLarge
+                                                .titleMedium
                                                 ?.copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                           ),
-                                          SizedBox(height: 4),
-                                          ...points.map((point) => Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 16.0, top: 2.0),
-                                                child: Text(
-                                                  "- ${formatPoints(point)}",
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium,
-                                                ),
-                                              )),
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                                ],
-                              ),
-                            );
-                          }).toList(),
+                                        ),
+                                      ...traits.entries.map((traitEntry) {
+                                        final trait = traitEntry.key;
+                                        final points = traitEntry.value;
+                        
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 12.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "• ${capitalize(trait)}",
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge
+                                                    ?.copyWith(
+                                                      fontWeight: FontWeight.w600,
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .onPrimaryContainer,
+                                                    ),
+                                              ),
+                                              SizedBox(height: 4),
+                                              ...points.map((point) => Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 16.0, top: 2.0),
+                                                    child: Text(
+                                                      "- ${formatPoints(point)}",
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodyMedium,
+                                                    ),
+                                                  )),
+                                            ],
+                                          ),
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
                         ),
                       );
                     }).toList(),
